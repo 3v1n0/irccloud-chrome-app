@@ -103,6 +103,11 @@ function handleKeyDown(event)
         event.preventDefault();
         decreaseZoom();
         break;
+
+      // Ctrl+q
+      case 81:
+        window.close();
+        break;
     }
   }
 }
