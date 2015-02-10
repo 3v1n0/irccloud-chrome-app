@@ -88,8 +88,10 @@ function decreaseZoom()
 
 function handleKeyDown(event)
 {
-  if (event.ctrlKey) {
-    switch (event.keyCode) {
+  if (event.ctrlKey)
+  {
+    switch (event.keyCode)
+    {
       // Ctrl++.
       case 107:
       case 187:
@@ -104,9 +106,13 @@ function handleKeyDown(event)
         decreaseZoom();
         break;
 
-      // Ctrl+q
-      case 81:
+      case 81: // Ctrl+q
         window.close();
+        break;
+
+      case 82: // Ctrl+r
+      case 115: // F5
+        getWebView().reload();
         break;
     }
   }
