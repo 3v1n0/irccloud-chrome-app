@@ -14,6 +14,7 @@ onload = function()
   reLayout();
 
   window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('focus', function() { webview.focus(); });
 
   webview.style.webkitTransition = 'opacity 250ms';
   webview.addEventListener('unresponsive', function() {
