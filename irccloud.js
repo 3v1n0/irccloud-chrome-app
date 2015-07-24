@@ -93,22 +93,23 @@ function handleKeyDown(event)
   {
     switch (event.keyCode)
     {
-      // Ctrl++.
-      case 107:
+      case 107: // Ctrl++
       case 187:
         event.preventDefault();
         increaseZoom();
         break;
 
-      // Ctrl+-.
-      case 109:
+      case 109: // Ctrl+-
       case 189:
         event.preventDefault();
         decreaseZoom();
         break;
 
       case 81: // Ctrl+q
-        window.close();
+      case 87: // Ctrl+w
+        event.preventDefault();
+        if (event.shiftKey)
+          window.close();
         break;
 
       case 82: // Ctrl+r
