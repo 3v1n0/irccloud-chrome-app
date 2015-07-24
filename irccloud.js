@@ -1,4 +1,5 @@
 window.onresize = reLayout;
+var findMatchCase = false;
 
 function getWebView()
 {
@@ -43,6 +44,49 @@ onload = function()
     e.stopImmediatePropagation();
     window.open(e.targetUrl);
   });
+
+  document.querySelector('#find-text').oninput = findNext;
+  document.querySelector('#find-backward').onclick = findPrev;
+
+  document.querySelector('#find-text').onkeydown = function(event) {
+    if (!event.altKey)
+    {
+      if (!event.ctrlKey && !event.shiftKey)
+      {
+        if (event.keyCode == 27) // Escape
+        {
+          event.preventDefault();
+          closeFindBox();
+        }
+      }
+      else if (event.ctrlKey)
+      {
+        if (event.keyCode == 71) // G
+        {
+          event.preventDefault();
+          event.shiftKey ? findPrev() : findNext();
+        }
+      }
+    }
+  }
+
+  document.querySelector('#match-case').onclick = function(e) {
+    e.preventDefault();
+    findMatchCase = !findMatchCase;
+    var matchCase = document.querySelector('#match-case');
+    matchCase.style.color = findMatchCase ? "blue" : "black";
+    matchCase.style['font-weight'] = findMatchCase ? "bold" : "";
+    webview.find(document.forms['find-form']['find-text'].value,
+     {matchCase: findMatchCase});
+  }
+
+  document.querySelector('#find-form').onsubmit = function(e) {
+    e.preventDefault();
+    webview.find(document.forms['find-form']['find-text'].value,
+     {matchCase: findMatchCase});
+  }
+
+  webview.addEventListener('findupdate', handleFindUpdate);
 };
 
 function reLayout()
@@ -105,6 +149,11 @@ function handleKeyDown(event)
         decreaseZoom();
         break;
 
+      case 70: // Ctrl+F
+        event.preventDefault();
+        isFindBoxVisible() ? closeFindBox() : openFindBox();
+        break;
+
       case 81: // Ctrl+q
       case 87: // Ctrl+w
         event.preventDefault();
@@ -116,6 +165,88 @@ function handleKeyDown(event)
       case 115: // F5
         getWebView().reload();
         break;
+    }
+  }
+}
+
+function isFindBoxVisible()
+{
+  return document.querySelector('#find-box').style.display === 'block';
+}
+
+function openFindBox()
+{
+  document.querySelector('#find-box').style.display = 'block';
+  document.forms['find-form']['find-text'].select();
+}
+
+function resetSearch()
+{
+  getWebView().stopFinding('activate');
+}
+
+function closeFindBox()
+{
+  resetSearch();
+  var findBox = document.querySelector('#find-box');
+  findBox.style.display = 'none';
+  findBox.style.left = "";
+  findBox.style.opacity = "";
+  document.querySelector('#find-results').innerText= "";
+}
+
+function findNext()
+{
+  getWebView().find(document.forms['find-form']['find-text'].value,
+     {matchCase: findMatchCase});
+}
+
+function findPrev()
+{
+  getWebView().find(document.forms['find-form']['find-text'].value,
+     {backward: true, matchCase: findMatchCase});
+}
+
+function findBoxObscuresActiveMatch(findBoxRect, matchRect)
+{
+  return findBoxRect.left < matchRect.left + matchRect.width &&
+      findBoxRect.right > matchRect.left &&
+      findBoxRect.top < matchRect.top + matchRect.height &&
+      findBoxRect.bottom > matchRect.top;
+}
+
+function handleFindUpdate(event)
+{
+  var findResults = document.querySelector('#find-results');
+  if (event.searchText == "")
+  {
+    findResults.innerText = "";
+  }
+  else
+  {
+    findResults.innerText =
+        event.activeMatchOrdinal + " of " + event.numberOfMatches;
+  }
+
+  // Ensure that the find box does not obscure the active match.
+  if (event.finalUpdate && !event.canceled)
+  {
+    var findBox = document.querySelector('#find-box');
+    findBox.style.left = "";
+    findBox.style.opacity = "";
+    var findBoxRect = findBox.getBoundingClientRect();
+    if (findBoxObscuresActiveMatch(findBoxRect, event.selectionRect)) {
+      // Move the find box out of the way if there is room on the screen, or
+      // make it semi-transparent otherwise.
+      var potentialLeft = event.selectionRect.left - findBoxRect.width - 10;
+      if (potentialLeft >= 5)
+      {
+        findBox.style.left = potentialLeft + "px";
+      }
+      else
+      {
+        findBox.style.opacity = "0.5";
+      }
     }
   }
 }
